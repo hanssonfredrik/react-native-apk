@@ -15,8 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.io.File;
 
 import javax.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 
 public class ReactNativeAPKModule extends ReactContextBaseJavaModule {
 
@@ -46,9 +48,27 @@ public class ReactNativeAPKModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void installApp(String packagePath) {
-    Intent intent = new Intent(Intent.ACTION_VIEW);
-    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    intent.setDataAndType(Uri.parse(packagePath), "application/vnd.android.package-archive");
+    Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+    // intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    // intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+    // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    
+    // Old Approach
+    // intent.setDataAndType(Uri.parse(packagePath), "application/vnd.android.package-archive");
+    // End Old approach
+
+    // New Approach
+    File file = new File(packagePath);
+
+    Uri apkURI = FileProvider.getUriForFile(
+                             this.reactContext, 
+                             this.reactContext.getApplicationContext()
+                             .getPackageName() + ".fileprovider", file);
+
+    intent.setDataAndType(apkURI, "application/vnd.android.package-archive");
+    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    // End New Approach
+  
     this.reactContext.startActivity(intent);
   }
 
